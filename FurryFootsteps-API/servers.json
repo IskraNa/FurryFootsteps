@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "docker-db",
+      "Group": "FurryFootsteps",
+      "Port": 5432,
+      "Username": "ff_user",
+      "Password": "ff_password",
+      "Host": "database",
+      "SSLMode": "prefer",
+      "MaintenanceDB": "furry_footsteps_db"
+    }
+  }
+}
