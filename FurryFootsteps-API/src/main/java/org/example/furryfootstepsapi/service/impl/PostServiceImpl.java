@@ -1,6 +1,7 @@
 package org.example.furryfootstepsapi.service.impl;
 
 import org.example.furryfootstepsapi.model.Post;
+import org.example.furryfootstepsapi.model.exceptions.PostNotFound;
 import org.example.furryfootstepsapi.repository.PostRepository;
 import org.example.furryfootstepsapi.service.PostService;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,11 @@ public class PostServiceImpl implements PostService {
 
     public List<Post> findAll() {
         return this.postRepository.findAll();
+    }
+
+    @Override
+    public Optional<Post> findById(Long id) {
+        return Optional.of(this.postRepository.findById(id).orElseThrow(() -> new PostNotFound(id)));
     }
 
 

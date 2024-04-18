@@ -9,17 +9,17 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/pettypes")
+@RequestMapping("/api/pet-types")
 @CrossOrigin(origins = {"*"})
-public class PetTypeRESTController {
+public class PetTypeController {
 
     private final PetTypeService petTypeService;
 
-    public PetTypeRESTController(PetTypeService petTypeService) {
+    public PetTypeController(PetTypeService petTypeService) {
         this.petTypeService = petTypeService;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<PetType>> getPetTypes(){
         return ResponseEntity.ok().body(this.petTypeService.findAll());
     }

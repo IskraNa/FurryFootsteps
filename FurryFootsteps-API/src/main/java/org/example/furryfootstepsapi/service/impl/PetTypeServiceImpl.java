@@ -19,11 +19,11 @@ public class PetTypeServiceImpl implements PetTypeService {
 
     @Override
     public List<PetType> findAll() {
-        return this.findAll();
+        return this.petTypeRepository.findAll();
     }
 
     @Override
     public Optional<PetType> findById(Long id) {
-        return this.findById(id);
+        return this.petTypeRepository.findById(id);
     }
 }
