@@ -1,6 +1,8 @@
 package org.example.furryfootstepsapi.web;
 
 import org.example.furryfootstepsapi.model.Post;
+import org.example.furryfootstepsapi.model.requests.PostRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,5 +33,11 @@ public class PostController {
     public ResponseEntity<Post> getPostById(@PathVariable Long id) {
         return this.postService.findById(id).map(post -> ResponseEntity.ok().body(post))
                 .orElseGet(() -> ResponseEntity.notFound().build());
+     }
+
+     @PostMapping("/add")
+    public ResponseEntity<Post> createPost(@RequestBody PostRequest post) {
+         Post newPost = this.postService.create(post);
+         return new ResponseEntity<>(newPost, HttpStatus.CREATED);
      }
 }
