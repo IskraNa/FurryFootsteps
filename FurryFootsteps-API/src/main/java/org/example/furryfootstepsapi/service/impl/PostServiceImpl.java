@@ -50,6 +50,7 @@ public class PostServiceImpl implements PostService {
         ActivityType activityType = activityTypeRepository.findById(postRequest.activityTypeId)
                 .orElseThrow(() -> new ActivityTypeNotFound(postRequest.activityTypeId));
 
+        // TODO: get the user id from user that is logged in
         User user = userRepository.findById(postRequest.userId)
                 .orElseThrow(() -> new UserNotFound(postRequest.userId));
 
@@ -61,6 +62,30 @@ public class PostServiceImpl implements PostService {
         post.setUser(user);
 
         return this.postRepository.save(post);
+    }
+
+    @Override
+    public Post update(Long id, PostRequest postRequest) {
+        Post post = this.postRepository.findById(id).orElseThrow(() -> new PostNotFound(id));
+        PetType petType = petTypeRepository.findById(postRequest.petTypeId)
+                .orElseThrow(() -> new PetTypeNotFound(postRequest.petTypeId));
+
+        ActivityType activityType = activityTypeRepository.findById(postRequest.activityTypeId)
+                .orElseThrow(() -> new ActivityTypeNotFound(postRequest.activityTypeId));
+        post.setDescription(postRequest.description);
+        post.setPetSize(postRequest.petSize);
+        post.setPrice(postRequest.price);
+        post.setPetType(petType);
+        post.setActivityType(activityType);
+
+        return this.postRepository.save(post);
+    }
+
+    @Override
+    public void delete(Long id) {
+        Post post = this.postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFound(id));
+        this.postRepository.delete(post);
     }
 
 

@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import org.example.furryfootstepsapi.service.impl.PostServiceImpl;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -40,4 +39,18 @@ public class PostController {
          Post newPost = this.postService.create(post);
          return new ResponseEntity<>(newPost, HttpStatus.CREATED);
      }
+
+     @PutMapping(value = "/{id}")
+    public ResponseEntity<Post> updatePost(@PathVariable Long id,
+                                           @RequestBody PostRequest postRequest) {
+        Post updatedPost = this.postService.update(id, postRequest);
+        return new ResponseEntity<>(updatedPost, HttpStatus.OK);
+     }
+
+     @DeleteMapping("/{id}")
+    public ResponseEntity<String> deletePost(@PathVariable Long id) {
+        this.postService.delete(id);
+        return new ResponseEntity<>("Post deleted successfully!", HttpStatus.OK);
+     }
+
 }

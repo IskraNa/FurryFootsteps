@@ -10,6 +10,7 @@ public interface PostService {
 
     List<Post> findAll();
     Optional<Post> findById(Long id);
-
     Post create(PostRequest postRequest);
+    Post update(Long id, PostRequest postRequest);
+    void delete(Long id);
 }
