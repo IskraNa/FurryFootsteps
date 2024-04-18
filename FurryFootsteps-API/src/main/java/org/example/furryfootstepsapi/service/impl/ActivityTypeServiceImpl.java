@@ -24,6 +24,6 @@ public class ActivityTypeServiceImpl implements ActivityTypeService {
 
     @Override
     public Optional<ActivityType> findById(Long id) {
-        return this.findById(id);
+        return this.activityTypeRepository.findById(id);
     }
 }

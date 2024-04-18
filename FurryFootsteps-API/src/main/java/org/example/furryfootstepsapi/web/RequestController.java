@@ -10,15 +10,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/requests")
 @CrossOrigin(origins = {"*"})
-public class RequestRESTController {
+public class RequestController {
 
     private final RequestService requestService;
 
-    public RequestRESTController(RequestService requestService) {
+    public RequestController(RequestService requestService) {
         this.requestService = requestService;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<Request>> getRequests() {
         return ResponseEntity.ok().body(this.requestService.findAll());
     }
