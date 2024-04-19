@@ -25,7 +25,7 @@ public class RequestController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Request> getRequestById(@PathVariable Long id) {
-        return this.requestService.findById(id).map(post -> ResponseEntity.ok().body(post))
+        return this.requestService.findById(id).map(request -> ResponseEntity.ok().body(request))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
