@@ -4,6 +4,7 @@ import org.example.furryfootstepsapi.model.Post;
 import org.example.furryfootstepsapi.model.Review;
 import org.example.furryfootstepsapi.model.User;
 import org.example.furryfootstepsapi.model.exceptions.PostNotFound;
+import org.example.furryfootstepsapi.model.exceptions.ReviewNotFound;
 import org.example.furryfootstepsapi.model.exceptions.UserNotFound;
 import org.example.furryfootstepsapi.model.requests.ReviewRequest;
 import org.example.furryfootstepsapi.repository.PostRepository;
@@ -55,7 +56,18 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public void delete(Long id) {
-        reviewRepository.deleteById(id);
+            public void delete(Long id) {
+        Review review = this.reviewRepository.findById(id)
+                .orElseThrow(() -> new ReviewNotFound(id));
+        this.reviewRepository.delete(review);
+    }
+    @Override
+    public Review update(Long id, ReviewRequest reviewRequest) {
+        Review review = this.reviewRepository.findById(id).orElseThrow(() -> new ReviewNotFound(id));
+
+        review.setRating(reviewRequest.rating);
+        review.setComment(reviewRequest.comment);
+
+        return this.reviewRepository.save(review);
     }
 }

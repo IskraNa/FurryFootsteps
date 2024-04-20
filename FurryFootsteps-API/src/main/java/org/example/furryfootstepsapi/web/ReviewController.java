@@ -1,6 +1,8 @@
 package org.example.furryfootstepsapi.web;
 
+import org.example.furryfootstepsapi.model.Post;
 import org.example.furryfootstepsapi.model.Review;
+import org.example.furryfootstepsapi.model.requests.PostRequest;
 import org.example.furryfootstepsapi.model.requests.ReviewRequest;
 import org.example.furryfootstepsapi.service.ReviewService;
 import org.springframework.http.HttpStatus;
@@ -38,9 +40,15 @@ public class ReviewController {
         return new ResponseEntity<>(newReview, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("{id}")
     public ResponseEntity<String> deleteReview(@PathVariable Long id) {
         this.reviewService.delete(id);
         return new ResponseEntity<>("Review deleted successfully!", HttpStatus.OK);
+    }
+    @PutMapping(value = "{id}")
+    public ResponseEntity<Review> updateReview(@PathVariable Long id,
+                                           @RequestBody ReviewRequest reviewRequest) {
+        Review updatedReview = this.reviewService.update(id, reviewRequest);
+        return new ResponseEntity<>(updatedReview, HttpStatus.OK);
     }
 }
