@@ -2,6 +2,7 @@ package org.example.furryfootstepsapi.service.impl;
 
 import jakarta.transaction.Transactional;
 import org.example.furryfootstepsapi.model.*;
+import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.exceptions.ActivityTypeNotFound;
 import org.example.furryfootstepsapi.model.exceptions.PetTypeNotFound;
 import org.example.furryfootstepsapi.model.exceptions.PostNotFound;
@@ -10,11 +11,13 @@ import org.example.furryfootstepsapi.model.requests.AvailabilityRequest;
 import org.example.furryfootstepsapi.model.requests.PostRequest;
 import org.example.furryfootstepsapi.repository.*;
 import org.example.furryfootstepsapi.service.PostService;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -24,26 +27,40 @@ public class PostServiceImpl implements PostService {
     private final UserRepository userRepository;
     private final AvailabilityRepository availabilityRepository;
 
-    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository, AvailabilityRepository availabilityRepository) {
+    private final ModelMapper modelMapper;
+
+    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository, AvailabilityRepository availabilityRepository, ModelMapper modelMapper) {
         this.postRepository = postRepository;
         this.petTypeRepository = petTypeRepository;
         this.activityTypeRepository = activityTypeRepository;
         this.userRepository = userRepository;
         this.availabilityRepository = availabilityRepository;
+        this.modelMapper = modelMapper;
     }
 
-    public List<Post> findAll() {
-        return this.postRepository.findAll();
+    public List<PostDto> findAll() {
+        List<PostDto> postDtos = this.postRepository.findAll()
+                .stream()
+                .map(post -> modelMapper.map(post, PostDto.class))
+                .collect(Collectors.toList());
+
+        for (PostDto postDto : postDtos) {
+            setAvailabilitiesToPostDto(postDto.getId(), postDto);
+        }
+        return postDtos;
     }
 
     @Override
-    public Optional<Post> findById(Long id) {
-        return Optional.of(this.postRepository.findById(id).orElseThrow(() -> new PostNotFound(id)));
+    public Optional<PostDto> findById(Long id) {
+        Post post = this.postRepository.findById(id).orElseThrow(() -> new PostNotFound(id));
+        PostDto postDto = modelMapper.map(post, PostDto.class);
+        setAvailabilitiesToPostDto(id, postDto);
+        return Optional.of(postDto);
     }
 
     @Override
     @Transactional
-    public Post create(PostRequest postRequest) {
+    public PostDto create(PostRequest postRequest) {
         Post post = new Post();
 
         PetType petType = petTypeRepository.findById(postRequest.petTypeId)
@@ -81,12 +98,14 @@ public class PostServiceImpl implements PostService {
         }
 
         this.postRepository.save(post);
-        return post;
+        PostDto postDto = modelMapper.map(post, PostDto.class);
+        setAvailabilitiesToPostDto(postDto.getId(), postDto);
+        return postDto;
     }
 
     @Override
     @Transactional
-    public Post update(Long id, PostRequest postRequest) {
+    public PostDto update(Long id, PostRequest postRequest) {
         Post post = this.postRepository.findById(id).orElseThrow(() -> new PostNotFound(id));
         PetType petType = petTypeRepository.findById(postRequest.petTypeId)
                 .orElseThrow(() -> new PetTypeNotFound(postRequest.petTypeId));
@@ -120,7 +139,10 @@ public class PostServiceImpl implements PostService {
             this.availabilityRepository.saveAll(updatedAvailabilities);
         }
 
-        return this.postRepository.save(post);
+        this.postRepository.save(post);
+        PostDto postDto = modelMapper.map(post, PostDto.class);
+        setAvailabilitiesToPostDto(postDto.getId(), postDto);
+        return postDto;
     }
 
     @Override
@@ -132,5 +154,13 @@ public class PostServiceImpl implements PostService {
         this.postRepository.delete(post);
     }
 
+    private void setAvailabilitiesToPostDto(Long postId, PostDto postDto) {
+        List<Availability> availabilities = this.availabilityRepository.findAllByPostId(postId);
+        postDto.setAvailabilities(availabilities
+                .stream()
+                .map(availability -> modelMapper.map(availability, AvailabilityRequest.class))
+                .collect(Collectors.toList())
+        );
+    }
 
 }
