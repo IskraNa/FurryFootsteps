@@ -1,9 +1,10 @@
 package org.example.furryfootstepsapi.model;
 
 import lombok.Data;
-import net.sf.jsqlparser.expression.DateTimeLiteralExpression;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 
 
 @Data
@@ -17,10 +18,10 @@ public class Availability {
     private Long id;
 
     @Column(name = "datetime_from")
-    private DateTimeLiteralExpression.DateTime dateTimeFrom;
+    private LocalDateTime dateTimeFrom;
 
     @Column(name = "datetime_to")
-    private DateTimeLiteralExpression.DateTime dateTimeTo;
+    private LocalDateTime dateTimeTo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
@@ -29,7 +30,7 @@ public class Availability {
     public Availability() {
     }
 
-    public Availability(Long id, DateTimeLiteralExpression.DateTime dateTimeFrom, DateTimeLiteralExpression.DateTime dateTimeTo, Post post) {
+    public Availability(Long id, LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Post post) {
         this.id = id;
         this.dateTimeFrom = dateTimeFrom;
         this.dateTimeTo = dateTimeTo;

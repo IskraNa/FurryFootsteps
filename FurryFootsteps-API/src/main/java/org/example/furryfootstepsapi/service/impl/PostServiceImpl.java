@@ -1,21 +1,23 @@
 package org.example.furryfootstepsapi.service.impl;
 
-import org.example.furryfootstepsapi.model.ActivityType;
-import org.example.furryfootstepsapi.model.PetType;
-import org.example.furryfootstepsapi.model.Post;
-import org.example.furryfootstepsapi.model.User;
+import jakarta.transaction.Transactional;
+import org.example.furryfootstepsapi.model.*;
+import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.exceptions.ActivityTypeNotFound;
 import org.example.furryfootstepsapi.model.exceptions.PetTypeNotFound;
 import org.example.furryfootstepsapi.model.exceptions.PostNotFound;
 import org.example.furryfootstepsapi.model.exceptions.UserNotFound;
+import org.example.furryfootstepsapi.model.requests.AvailabilityRequest;
 import org.example.furryfootstepsapi.model.requests.PostRequest;
-import org.example.furryfootstepsapi.repository.ActivityTypeRepository;
-import org.example.furryfootstepsapi.repository.PetTypeRepository;
-import org.example.furryfootstepsapi.repository.PostRepository;
-import org.example.furryfootstepsapi.repository.UserRepository;
+import org.example.furryfootstepsapi.repository.*;
 import org.example.furryfootstepsapi.service.PostService;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -23,25 +25,42 @@ public class PostServiceImpl implements PostService {
     private final PetTypeRepository petTypeRepository;
     private final ActivityTypeRepository activityTypeRepository;
     private final UserRepository userRepository;
+    private final AvailabilityRepository availabilityRepository;
 
-    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository) {
+    private final ModelMapper modelMapper;
+
+    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository, AvailabilityRepository availabilityRepository, ModelMapper modelMapper) {
         this.postRepository = postRepository;
         this.petTypeRepository = petTypeRepository;
         this.activityTypeRepository = activityTypeRepository;
         this.userRepository = userRepository;
+        this.availabilityRepository = availabilityRepository;
+        this.modelMapper = modelMapper;
     }
 
-    public List<Post> findAll() {
-        return this.postRepository.findAll();
+    public List<PostDto> findAll() {
+        List<PostDto> postDtos = this.postRepository.findAll()
+                .stream()
+                .map(post -> modelMapper.map(post, PostDto.class))
+                .collect(Collectors.toList());
+
+        for (PostDto postDto : postDtos) {
+            setAvailabilitiesToPostDto(postDto.getId(), postDto);
+        }
+        return postDtos;
     }
 
     @Override
-    public Optional<Post> findById(Long id) {
-        return Optional.of(this.postRepository.findById(id).orElseThrow(() -> new PostNotFound(id)));
+    public Optional<PostDto> findById(Long id) {
+        Post post = this.postRepository.findById(id).orElseThrow(() -> new PostNotFound(id));
+        PostDto postDto = modelMapper.map(post, PostDto.class);
+        setAvailabilitiesToPostDto(id, postDto);
+        return Optional.of(postDto);
     }
 
     @Override
-    public Post create(PostRequest postRequest) {
+    @Transactional
+    public PostDto create(PostRequest postRequest) {
         Post post = new Post();
 
         PetType petType = petTypeRepository.findById(postRequest.petTypeId)
@@ -61,11 +80,32 @@ public class PostServiceImpl implements PostService {
         post.setActivityType(activityType);
         post.setUser(user);
 
-        return this.postRepository.save(post);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
+        if (!postRequest.availabilities.isEmpty()) {
+            for (AvailabilityRequest availabilityRequest : postRequest.availabilities) {
+                Availability availability = new Availability();
+                LocalDateTime localDateTimeFromParsed = LocalDateTime
+                        .parse(availabilityRequest.dateTimeFrom, formatter);
+                LocalDateTime localDateTimeToParsed = LocalDateTime
+                        .parse(availabilityRequest.dateTimeTo, formatter);
+                availability.setDateTimeFrom(localDateTimeFromParsed);
+                availability.setDateTimeTo(localDateTimeToParsed);
+                availability.setPost(post);
+
+                this.availabilityRepository.save(availability);
+            }
+        }
+
+        this.postRepository.save(post);
+        PostDto postDto = modelMapper.map(post, PostDto.class);
+        setAvailabilitiesToPostDto(postDto.getId(), postDto);
+        return postDto;
     }
 
     @Override
-    public Post update(Long id, PostRequest postRequest) {
+    @Transactional
+    public PostDto update(Long id, PostRequest postRequest) {
         Post post = this.postRepository.findById(id).orElseThrow(() -> new PostNotFound(id));
         PetType petType = petTypeRepository.findById(postRequest.petTypeId)
                 .orElseThrow(() -> new PetTypeNotFound(postRequest.petTypeId));
@@ -78,15 +118,49 @@ public class PostServiceImpl implements PostService {
         post.setPetType(petType);
         post.setActivityType(activityType);
 
-        return this.postRepository.save(post);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
+        this.availabilityRepository.deleteByPostId(id);
+
+        List<Availability> updatedAvailabilities = new ArrayList<>();
+        if (!postRequest.availabilities.isEmpty()) {
+            for (AvailabilityRequest availabilityRequest : postRequest.availabilities) {
+                LocalDateTime localDateTimeFromParsed = LocalDateTime.parse(availabilityRequest.dateTimeFrom, formatter);
+                LocalDateTime localDateTimeToParsed = LocalDateTime.parse(availabilityRequest.dateTimeTo, formatter);
+
+                Availability availability = new Availability();
+                availability.setDateTimeFrom(localDateTimeFromParsed);
+                availability.setDateTimeTo(localDateTimeToParsed);
+                availability.setPost(post);
+
+                updatedAvailabilities.add(availability);
+            }
+
+            this.availabilityRepository.saveAll(updatedAvailabilities);
+        }
+
+        this.postRepository.save(post);
+        PostDto postDto = modelMapper.map(post, PostDto.class);
+        setAvailabilitiesToPostDto(postDto.getId(), postDto);
+        return postDto;
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         Post post = this.postRepository.findById(id)
                 .orElseThrow(() -> new PostNotFound(id));
+        this.availabilityRepository.deleteByPostId(id);
         this.postRepository.delete(post);
     }
 
+    private void setAvailabilitiesToPostDto(Long postId, PostDto postDto) {
+        List<Availability> availabilities = this.availabilityRepository.findAllByPostId(postId);
+        postDto.setAvailabilities(availabilities
+                .stream()
+                .map(availability -> modelMapper.map(availability, AvailabilityRequest.class))
+                .collect(Collectors.toList())
+        );
+    }
 
 }
