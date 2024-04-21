@@ -30,7 +30,7 @@ public class ReviewController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Review> getReviewById(@PathVariable Long id) {
-        return this.reviewService.findById(id).map(post -> ResponseEntity.ok().body(post))
+        return this.reviewService.findById(id).map(review -> ResponseEntity.ok().body(review))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
