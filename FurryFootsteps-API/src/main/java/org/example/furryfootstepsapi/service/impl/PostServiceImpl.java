@@ -1,20 +1,19 @@
 package org.example.furryfootstepsapi.service.impl;
 
-import org.example.furryfootstepsapi.model.ActivityType;
-import org.example.furryfootstepsapi.model.PetType;
-import org.example.furryfootstepsapi.model.Post;
-import org.example.furryfootstepsapi.model.User;
+import jakarta.transaction.Transactional;
+import org.example.furryfootstepsapi.model.*;
 import org.example.furryfootstepsapi.model.exceptions.ActivityTypeNotFound;
 import org.example.furryfootstepsapi.model.exceptions.PetTypeNotFound;
 import org.example.furryfootstepsapi.model.exceptions.PostNotFound;
 import org.example.furryfootstepsapi.model.exceptions.UserNotFound;
+import org.example.furryfootstepsapi.model.requests.AvailabilityRequest;
 import org.example.furryfootstepsapi.model.requests.PostRequest;
-import org.example.furryfootstepsapi.repository.ActivityTypeRepository;
-import org.example.furryfootstepsapi.repository.PetTypeRepository;
-import org.example.furryfootstepsapi.repository.PostRepository;
-import org.example.furryfootstepsapi.repository.UserRepository;
+import org.example.furryfootstepsapi.repository.*;
 import org.example.furryfootstepsapi.service.PostService;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -23,12 +22,14 @@ public class PostServiceImpl implements PostService {
     private final PetTypeRepository petTypeRepository;
     private final ActivityTypeRepository activityTypeRepository;
     private final UserRepository userRepository;
+    private final AvailabilityRepository availabilityRepository;
 
-    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository) {
+    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository, AvailabilityRepository availabilityRepository) {
         this.postRepository = postRepository;
         this.petTypeRepository = petTypeRepository;
         this.activityTypeRepository = activityTypeRepository;
         this.userRepository = userRepository;
+        this.availabilityRepository = availabilityRepository;
     }
 
     public List<Post> findAll() {
@@ -41,6 +42,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional
     public Post create(PostRequest postRequest) {
         Post post = new Post();
 
@@ -61,7 +63,25 @@ public class PostServiceImpl implements PostService {
         post.setActivityType(activityType);
         post.setUser(user);
 
-        return this.postRepository.save(post);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX");
+
+        if (!postRequest.availabilities.isEmpty()) {
+            for (AvailabilityRequest availabilityRequest : postRequest.availabilities) {
+                Availability availability = new Availability();
+                LocalDateTime localDateTimeFromParsed = LocalDateTime
+                        .parse(availabilityRequest.dateTimeFrom, formatter);
+                LocalDateTime localDateTimeToParsed = LocalDateTime
+                        .parse(availabilityRequest.dateTimeTo, formatter);
+                availability.setDateTimeFrom(localDateTimeFromParsed);
+                availability.setDateTimeTo(localDateTimeToParsed);
+                availability.setPost(post);
+
+                this.availabilityRepository.save(availability);
+            }
+        }
+
+        this.postRepository.save(post);
+        return post;
     }
 
     @Override
@@ -82,9 +102,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         Post post = this.postRepository.findById(id)
                 .orElseThrow(() -> new PostNotFound(id));
+        this.availabilityRepository.deleteByPostId(id);
         this.postRepository.delete(post);
     }
 

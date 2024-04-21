@@ -24,7 +24,6 @@ public class PostController {
 
      @GetMapping
      public ResponseEntity<List<Post>> getPosts() {
-
          return ResponseEntity.ok().body(this.postService.findAll());
      }
 
