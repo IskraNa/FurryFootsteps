@@ -63,7 +63,7 @@ public class PostServiceImpl implements PostService {
         post.setActivityType(activityType);
         post.setUser(user);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
         if (!postRequest.availabilities.isEmpty()) {
             for (AvailabilityRequest availabilityRequest : postRequest.availabilities) {
@@ -85,6 +85,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional
     public Post update(Long id, PostRequest postRequest) {
         Post post = this.postRepository.findById(id).orElseThrow(() -> new PostNotFound(id));
         PetType petType = petTypeRepository.findById(postRequest.petTypeId)
@@ -97,6 +98,27 @@ public class PostServiceImpl implements PostService {
         post.setPrice(postRequest.price);
         post.setPetType(petType);
         post.setActivityType(activityType);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
+        this.availabilityRepository.deleteByPostId(id);
+
+        List<Availability> updatedAvailabilities = new ArrayList<>();
+        if (!postRequest.availabilities.isEmpty()) {
+            for (AvailabilityRequest availabilityRequest : postRequest.availabilities) {
+                LocalDateTime localDateTimeFromParsed = LocalDateTime.parse(availabilityRequest.dateTimeFrom, formatter);
+                LocalDateTime localDateTimeToParsed = LocalDateTime.parse(availabilityRequest.dateTimeTo, formatter);
+
+                Availability availability = new Availability();
+                availability.setDateTimeFrom(localDateTimeFromParsed);
+                availability.setDateTimeTo(localDateTimeToParsed);
+                availability.setPost(post);
+
+                updatedAvailabilities.add(availability);
+            }
+
+            this.availabilityRepository.saveAll(updatedAvailabilities);
+        }
 
         return this.postRepository.save(post);
     }
