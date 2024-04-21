@@ -22,4 +22,10 @@ public class RequestController {
     public ResponseEntity<List<Request>> getRequests() {
         return ResponseEntity.ok().body(this.requestService.findAll());
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Request> getRequestById(@PathVariable Long id) {
+        return this.requestService.findById(id).map(request -> ResponseEntity.ok().body(request))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }
