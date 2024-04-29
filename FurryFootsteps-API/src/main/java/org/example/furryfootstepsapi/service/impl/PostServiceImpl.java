@@ -3,6 +3,8 @@ package org.example.furryfootstepsapi.service.impl;
 import jakarta.transaction.Transactional;
 import org.example.furryfootstepsapi.model.*;
 import org.example.furryfootstepsapi.model.dto.PostDto;
+import org.example.furryfootstepsapi.model.dto.PostWithReviewsDto;
+import org.example.furryfootstepsapi.model.dto.ReviewDto;
 import org.example.furryfootstepsapi.model.exceptions.ActivityTypeNotFound;
 import org.example.furryfootstepsapi.model.exceptions.PetTypeNotFound;
 import org.example.furryfootstepsapi.model.exceptions.PostNotFound;
@@ -26,19 +28,20 @@ public class PostServiceImpl implements PostService {
     private final ActivityTypeRepository activityTypeRepository;
     private final UserRepository userRepository;
     private final AvailabilityRepository availabilityRepository;
-
     private final ModelMapper modelMapper;
+    private final ReviewRepository reviewRepository;
 
-    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository, AvailabilityRepository availabilityRepository, ModelMapper modelMapper) {
+    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository, AvailabilityRepository availabilityRepository, ModelMapper modelMapper, ReviewRepository reviewRepository) {
         this.postRepository = postRepository;
         this.petTypeRepository = petTypeRepository;
         this.activityTypeRepository = activityTypeRepository;
         this.userRepository = userRepository;
         this.availabilityRepository = availabilityRepository;
         this.modelMapper = modelMapper;
+        this.reviewRepository=reviewRepository;
     }
-
-    public List<PostDto> findAll() {
+    @Override
+    public List<PostWithReviewsDto> findAll() {
         List<PostDto> postDtos = this.postRepository.findAll()
                 .stream()
                 .map(post -> modelMapper.map(post, PostDto.class))
@@ -47,15 +50,40 @@ public class PostServiceImpl implements PostService {
         for (PostDto postDto : postDtos) {
             setAvailabilitiesToPostDto(postDto.getId(), postDto);
         }
-        return postDtos;
+        List<PostWithReviewsDto> postWithReviewsDtos = new ArrayList<>();
+
+        for (PostDto postDto : postDtos) {
+            PostWithReviewsDto postWithReviewsDto = modelMapper.map(postDto, PostWithReviewsDto.class);
+            List<ReviewDto> reviews = reviewRepository.findAllByPostId(postDto.getId())
+                    .stream()
+                    .map(review -> modelMapper.map(review, ReviewDto.class))
+                    .collect(Collectors.toList());
+            postWithReviewsDto.setReviews(reviews);
+            postWithReviewsDtos.add(postWithReviewsDto);
+        }
+
+        return postWithReviewsDtos;
     }
 
     @Override
-    public Optional<PostDto> findById(Long id) {
+    public Optional<PostWithReviewsDto> findById(Long id) {
         Post post = this.postRepository.findById(id).orElseThrow(() -> new PostNotFound(id));
         PostDto postDto = modelMapper.map(post, PostDto.class);
         setAvailabilitiesToPostDto(id, postDto);
-        return Optional.of(postDto);
+
+
+
+        PostWithReviewsDto postWithReviewsDto = modelMapper.map(postDto, PostWithReviewsDto.class);
+        List<ReviewDto> reviews = reviewRepository.findAllByPostId(postDto.getId())
+                .stream()
+                .map(review -> modelMapper.map(review, ReviewDto.class))
+                .collect(Collectors.toList());
+        postWithReviewsDto.setReviews(reviews);
+
+
+
+        return Optional.of(postWithReviewsDto);
+        //return Optional.of(postDto);
     }
 
     @Override
@@ -98,6 +126,7 @@ public class PostServiceImpl implements PostService {
         }
 
         this.postRepository.save(post);
+
         PostDto postDto = modelMapper.map(post, PostDto.class);
         setAvailabilitiesToPostDto(postDto.getId(), postDto);
         return postDto;

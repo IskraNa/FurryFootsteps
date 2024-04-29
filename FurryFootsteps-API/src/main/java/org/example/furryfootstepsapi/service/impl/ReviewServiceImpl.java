@@ -62,7 +62,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new PostNotFound(reviewRequest.postId));
         review.setUser(user);
         review.setPost(post);
-        review.setRating(reviewRequest.rating);
+        review.setRating(reviewRequest.rating); //rating pretpostavuvam ke se dade na izbor kako dzvezdicki (ili shepi ha ha) pa nema da pravam checks za vrednosta
         review.setComment(reviewRequest.comment);
 
         this.reviewRepository.save(review);
