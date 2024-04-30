@@ -5,10 +5,7 @@ import org.example.furryfootstepsapi.model.*;
 import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.dto.PostWithReviewsDto;
 import org.example.furryfootstepsapi.model.dto.ReviewDto;
-import org.example.furryfootstepsapi.model.exceptions.ActivityTypeNotFound;
-import org.example.furryfootstepsapi.model.exceptions.PetTypeNotFound;
-import org.example.furryfootstepsapi.model.exceptions.PostNotFound;
-import org.example.furryfootstepsapi.model.exceptions.UserNotFound;
+import org.example.furryfootstepsapi.model.exceptions.*;
 import org.example.furryfootstepsapi.model.requests.AvailabilityRequest;
 import org.example.furryfootstepsapi.model.requests.PostRequest;
 import org.example.furryfootstepsapi.repository.*;
@@ -18,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,8 +36,9 @@ public class PostServiceImpl implements PostService {
         this.userRepository = userRepository;
         this.availabilityRepository = availabilityRepository;
         this.modelMapper = modelMapper;
-        this.reviewRepository=reviewRepository;
+        this.reviewRepository = reviewRepository;
     }
+
     @Override
     public List<PostDto> findAll() {
         List<PostDto> postDtos = this.postRepository.findAll()
@@ -59,16 +58,12 @@ public class PostServiceImpl implements PostService {
         PostDto postDto = modelMapper.map(post, PostDto.class);
         setAvailabilitiesToPostDto(id, postDto);
 
-
-
         PostWithReviewsDto postWithReviewsDto = modelMapper.map(postDto, PostWithReviewsDto.class);
         List<ReviewDto> reviews = reviewRepository.findAllByPostId(postDto.getId())
                 .stream()
                 .map(review -> modelMapper.map(review, ReviewDto.class))
                 .collect(Collectors.toList());
         postWithReviewsDto.setReviews(reviews);
-
-
 
         return Optional.of(postWithReviewsDto);
         //return Optional.of(postDto);
@@ -85,7 +80,6 @@ public class PostServiceImpl implements PostService {
         ActivityType activityType = activityTypeRepository.findById(postRequest.activityTypeId)
                 .orElseThrow(() -> new ActivityTypeNotFound(postRequest.activityTypeId));
 
-        // TODO: get the user id from user that is logged in
         User user = userRepository.findById(postRequest.userId)
                 .orElseThrow(() -> new UserNotFound(postRequest.userId));
 
@@ -96,22 +90,7 @@ public class PostServiceImpl implements PostService {
         post.setActivityType(activityType);
         post.setUser(user);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-
-        if (!postRequest.availabilities.isEmpty()) {
-            for (AvailabilityRequest availabilityRequest : postRequest.availabilities) {
-                Availability availability = new Availability();
-                LocalDateTime localDateTimeFromParsed = LocalDateTime
-                        .parse(availabilityRequest.dateTimeFrom, formatter);
-                LocalDateTime localDateTimeToParsed = LocalDateTime
-                        .parse(availabilityRequest.dateTimeTo, formatter);
-                availability.setDateTimeFrom(localDateTimeFromParsed);
-                availability.setDateTimeTo(localDateTimeToParsed);
-                availability.setPost(post);
-
-                this.availabilityRepository.save(availability);
-            }
-        }
+        processAvailabilities(post, postRequest.availabilities);
 
         this.postRepository.save(post);
 
@@ -135,26 +114,7 @@ public class PostServiceImpl implements PostService {
         post.setPetType(petType);
         post.setActivityType(activityType);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-
-        this.availabilityRepository.deleteByPostId(id);
-
-        List<Availability> updatedAvailabilities = new ArrayList<>();
-        if (!postRequest.availabilities.isEmpty()) {
-            for (AvailabilityRequest availabilityRequest : postRequest.availabilities) {
-                LocalDateTime localDateTimeFromParsed = LocalDateTime.parse(availabilityRequest.dateTimeFrom, formatter);
-                LocalDateTime localDateTimeToParsed = LocalDateTime.parse(availabilityRequest.dateTimeTo, formatter);
-
-                Availability availability = new Availability();
-                availability.setDateTimeFrom(localDateTimeFromParsed);
-                availability.setDateTimeTo(localDateTimeToParsed);
-                availability.setPost(post);
-
-                updatedAvailabilities.add(availability);
-            }
-
-            this.availabilityRepository.saveAll(updatedAvailabilities);
-        }
+        processAvailabilities(post, postRequest.availabilities);
 
         this.postRepository.save(post);
         PostDto postDto = modelMapper.map(post, PostDto.class);
@@ -178,6 +138,42 @@ public class PostServiceImpl implements PostService {
                 .map(availability -> modelMapper.map(availability, AvailabilityRequest.class))
                 .collect(Collectors.toList())
         );
+    }
+
+    private void processAvailabilities(Post post, List<AvailabilityRequest> availabilityRequests) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        this.availabilityRepository.deleteByPostId(post.getId());
+
+        List<Availability> updatedAvailabilities = new ArrayList<>();
+        for (AvailabilityRequest availabilityRequest : availabilityRequests) {
+            LocalDateTime localDateTimeFromParsed;
+            LocalDateTime localDateTimeToParsed;
+            try {
+                localDateTimeFromParsed = LocalDateTime.parse(availabilityRequest.dateTimeFrom, formatter);
+                localDateTimeToParsed = LocalDateTime.parse(availabilityRequest.dateTimeTo, formatter);
+            } catch (DateTimeParseException e) {
+                throw new IncorrectDateTimeFormat("Invalid date time format provided");
+            }
+
+            if (localDateTimeFromParsed.isAfter(localDateTimeToParsed)) {
+                throw new IncorrectDateTimeFormat("Date Time From cannot be after Date Time To");
+            }
+
+            if (localDateTimeFromParsed.isBefore(currentDateTime) || localDateTimeToParsed.isBefore(currentDateTime)) {
+                throw new IncorrectDateTimeFormat("Date Time parameters cannot be in the past");
+            }
+
+            Availability availability = new Availability();
+            availability.setDateTimeFrom(localDateTimeFromParsed);
+            availability.setDateTimeTo(localDateTimeToParsed);
+            availability.setPost(post);
+
+            updatedAvailabilities.add(availability);
+        }
+
+        this.availabilityRepository.saveAll(updatedAvailabilities);
     }
 
 }
