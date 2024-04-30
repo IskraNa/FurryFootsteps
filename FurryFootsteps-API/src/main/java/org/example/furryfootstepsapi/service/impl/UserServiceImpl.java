@@ -29,10 +29,8 @@ public class UserServiceImpl implements UserService {
     public User create(UserRequest userRequest) {
         User user = new User();
 
-        // TODO: implement restrictions when creating a user - if name, surname and email exist, do not create -> zosto name and surname?
         emailChecks(userRequest.email);
         phoneCheck(userRequest.phone);
-
 
         user.setName(userRequest.name);
         user.setSurname(userRequest.surname);
@@ -83,7 +81,7 @@ public class UserServiceImpl implements UserService {
     }
     public void phoneCheck(String phoneNumber) {
         String phoneRegex = "^\\d{9}$"; // 9 cifri samo spoeni 000000000
-        if (!phoneNumber.matches(phoneRegex)) {
+        if (phoneNumber != null && !phoneNumber.matches(phoneRegex)) { //staviv phoneNumber!=null u slucaj ako ne e zadolzitelno telf broj za profil
             throw new InvalidPhoneNumberFormatException();
         }
     }

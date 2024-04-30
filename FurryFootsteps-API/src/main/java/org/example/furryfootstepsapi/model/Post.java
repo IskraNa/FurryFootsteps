@@ -27,11 +27,11 @@ public class Post {
     @Column(name = "price")
     private double price;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pet_type_id")
     private PetType petType;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "activity_type_id")
     private ActivityType activityType;
 

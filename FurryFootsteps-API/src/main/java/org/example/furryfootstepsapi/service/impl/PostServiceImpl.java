@@ -67,7 +67,6 @@ public class PostServiceImpl implements PostService {
         postWithReviewsDto.setReviews(reviews);
 
         return Optional.of(postWithReviewsDto);
-        //return Optional.of(postDto);
     }
 
     @Override

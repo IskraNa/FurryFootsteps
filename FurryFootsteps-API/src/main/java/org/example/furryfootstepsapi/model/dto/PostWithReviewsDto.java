@@ -6,7 +6,6 @@ import org.example.furryfootstepsapi.model.requests.AvailabilityRequest;
 import java.util.List;
 @Data
 public class PostWithReviewsDto {
-    // TODO: return a post with its reviews
     public Long id;
     public String description;
     public String petSize;
