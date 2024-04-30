@@ -28,7 +28,7 @@ public class ModelMapperConfig {
             protected void configure() {
                 map().setId(source.getId());
                 map().setDescription(source.getDescription());
-                map().setPetSize(source.getPetSize());
+                //map().setPetSize(source.getPetSize());
                 map().setPrice(source.getPrice());
                 map().setPetTypeId(source.getPetType().getId());
                 map().setActivityTypeId(source.getActivityType().getId());

@@ -5,6 +5,7 @@ import org.example.furryfootstepsapi.model.*;
 import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.dto.PostWithReviewsDto;
 import org.example.furryfootstepsapi.model.dto.ReviewDto;
+import org.example.furryfootstepsapi.model.enums.PetSize;
 import org.example.furryfootstepsapi.model.exceptions.*;
 import org.example.furryfootstepsapi.model.requests.AvailabilityRequest;
 import org.example.furryfootstepsapi.model.requests.PostRequest;
@@ -83,8 +84,15 @@ public class PostServiceImpl implements PostService {
         User user = userRepository.findById(postRequest.userId)
                 .orElseThrow(() -> new UserNotFound(postRequest.userId));
 
+        PetSize petSizeEnum;
+        try {
+            petSizeEnum = PetSize.valueOf(postRequest.petSize.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IncorrectPetSize();
+        }
+
         post.setDescription(postRequest.description);
-        post.setPetSize(postRequest.petSize);
+        post.setPetSize(petSizeEnum);
         post.setPrice(postRequest.price);
         post.setPetType(petType);
         post.setActivityType(activityType);
@@ -95,6 +103,7 @@ public class PostServiceImpl implements PostService {
         this.postRepository.save(post);
 
         PostDto postDto = modelMapper.map(post, PostDto.class);
+        postDto.setPetSize(petSizeEnum.toString());
         setAvailabilitiesToPostDto(postDto.getId(), postDto);
         return postDto;
     }
@@ -108,8 +117,16 @@ public class PostServiceImpl implements PostService {
 
         ActivityType activityType = activityTypeRepository.findById(postRequest.activityTypeId)
                 .orElseThrow(() -> new ActivityTypeNotFound(postRequest.activityTypeId));
+
+        PetSize petSizeEnum;
+        try {
+            petSizeEnum = PetSize.valueOf(postRequest.petSize.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IncorrectPetSize();
+        }
+
         post.setDescription(postRequest.description);
-        post.setPetSize(postRequest.petSize);
+        post.setPetSize(petSizeEnum);
         post.setPrice(postRequest.price);
         post.setPetType(petType);
         post.setActivityType(activityType);
@@ -118,6 +135,7 @@ public class PostServiceImpl implements PostService {
 
         this.postRepository.save(post);
         PostDto postDto = modelMapper.map(post, PostDto.class);
+        postDto.setPetSize(petSizeEnum.toString());
         setAvailabilitiesToPostDto(postDto.getId(), postDto);
         return postDto;
     }
@@ -128,6 +146,7 @@ public class PostServiceImpl implements PostService {
         Post post = this.postRepository.findById(id)
                 .orElseThrow(() -> new PostNotFound(id));
         this.availabilityRepository.deleteByPostId(id);
+        this.reviewRepository.deleteByPostId(id);
         this.postRepository.delete(post);
     }
 
