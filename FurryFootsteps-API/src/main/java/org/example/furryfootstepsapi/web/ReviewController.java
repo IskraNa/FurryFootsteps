@@ -2,6 +2,7 @@ package org.example.furryfootstepsapi.web;
 
 import org.example.furryfootstepsapi.model.Post;
 import org.example.furryfootstepsapi.model.Review;
+import org.example.furryfootstepsapi.model.dto.ReviewDto;
 import org.example.furryfootstepsapi.model.requests.PostRequest;
 import org.example.furryfootstepsapi.model.requests.ReviewRequest;
 import org.example.furryfootstepsapi.service.ReviewService;
@@ -24,19 +25,19 @@ public class ReviewController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Review>> getReviews() {
+    public ResponseEntity<List<ReviewDto>> getReviews() {
         return ResponseEntity.ok().body(this.reviewService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Review> getReviewById(@PathVariable Long id) {
-        return this.reviewService.findById(id).map(post -> ResponseEntity.ok().body(post))
+    public ResponseEntity<ReviewDto> getReviewById(@PathVariable Long id) {
+        return this.reviewService.findById(id).map(review -> ResponseEntity.ok().body(review))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Review> createReview(@RequestBody ReviewRequest review) {
-        Review newReview = this.reviewService.create(review);
+    public ResponseEntity<ReviewDto> createReview(@RequestBody ReviewRequest review) {
+        ReviewDto newReview = this.reviewService.create(review);
         return new ResponseEntity<>(newReview, HttpStatus.CREATED);
     }
 
@@ -46,9 +47,9 @@ public class ReviewController {
         return new ResponseEntity<>("Review deleted successfully!", HttpStatus.OK);
     }
     @PutMapping(value = "{id}")
-    public ResponseEntity<Review> updateReview(@PathVariable Long id,
+    public ResponseEntity<ReviewDto> updateReview(@PathVariable Long id,
                                            @RequestBody ReviewRequest reviewRequest) {
-        Review updatedReview = this.reviewService.update(id, reviewRequest);
+        ReviewDto updatedReview = this.reviewService.update(id, reviewRequest);
         return new ResponseEntity<>(updatedReview, HttpStatus.OK);
     }
 }

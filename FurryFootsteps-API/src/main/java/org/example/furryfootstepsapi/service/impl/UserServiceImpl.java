@@ -1,8 +1,7 @@
 package org.example.furryfootstepsapi.service.impl;
 
 import org.example.furryfootstepsapi.model.User;
-import org.example.furryfootstepsapi.model.exceptions.PostNotFound;
-import org.example.furryfootstepsapi.model.exceptions.UserNotFound;
+import org.example.furryfootstepsapi.model.exceptions.*;
 import org.example.furryfootstepsapi.model.requests.UserRequest;
 import org.example.furryfootstepsapi.repository.UserRepository;
 import org.example.furryfootstepsapi.service.UserService;
@@ -30,7 +29,8 @@ public class UserServiceImpl implements UserService {
     public User create(UserRequest userRequest) {
         User user = new User();
 
-        // TODO: implement restrictions when creating a user - if name, surname and email exist, do not create
+        emailChecks(userRequest.email);
+        phoneCheck(userRequest.phone);
 
         user.setName(userRequest.name);
         user.setSurname(userRequest.surname);
@@ -52,6 +52,8 @@ public class UserServiceImpl implements UserService {
         // user.setName(userRequest.name);
         // user.setSurname(userRequest.surname);
         // user.setEmail(userRequest.email);
+        phoneCheck(userRequest.phone);
+
         user.setPassword(userRequest.password);
         user.setPhone(userRequest.phone);
         user.setLocation(userRequest.location);
@@ -66,5 +68,21 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         User user = this.userRepository.findById(id).orElseThrow(() -> new PostNotFound(id));
         this.userRepository.delete(user);
+    }
+
+    public void emailChecks(String email){
+        if(this.userRepository.findByEmail(email).isPresent()){
+            throw new EmailAlreadyExists();
+        }
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        if(!email.matches(emailRegex)){
+            throw new IncorrectEmailFormat();
+        }
+    }
+    public void phoneCheck(String phoneNumber) {
+        String phoneRegex = "^\\d{9}$"; // 9 cifri samo spoeni 000000000
+        if (phoneNumber != null && !phoneNumber.matches(phoneRegex)) { //staviv phoneNumber!=null u slucaj ako ne e zadolzitelno telf broj za profil
+            throw new InvalidPhoneNumberFormatException();
+        }
     }
 }

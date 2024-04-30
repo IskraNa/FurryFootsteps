@@ -3,6 +3,7 @@ package org.example.furryfootstepsapi.model;
 import lombok.Data;
 
 import jakarta.persistence.*;
+import org.example.furryfootstepsapi.model.enums.PetSize;
 
 
 @Data
@@ -20,16 +21,17 @@ public class Post {
 
 
     @Column(name = "pet_size")
-    private String petSize;
+    @Enumerated(EnumType.STRING)
+    private PetSize petSize;
 
     @Column(name = "price")
     private double price;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pet_type_id")
     private PetType petType;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "activity_type_id")
     private ActivityType activityType;
 
@@ -40,7 +42,7 @@ public class Post {
     public Post() {
     }
 
-    public Post(Long id, String description, String petSize, double price, PetType petType, ActivityType activityType, User user) {
+    public Post(Long id, String description, PetSize petSize, double price, PetType petType, ActivityType activityType, User user) {
         this.id = id;
         this.description = description;
         this.petSize = petSize;

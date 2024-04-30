@@ -1,7 +1,7 @@
 package org.example.furryfootstepsapi.web;
 
-import org.example.furryfootstepsapi.model.Post;
 import org.example.furryfootstepsapi.model.dto.PostDto;
+import org.example.furryfootstepsapi.model.dto.PostWithReviewsDto;
 import org.example.furryfootstepsapi.model.requests.PostRequest;
 import org.example.furryfootstepsapi.service.PostService;
 import org.springframework.http.HttpStatus;
@@ -25,7 +25,7 @@ public class PostController {
          return ResponseEntity.ok().body(this.postService.findAll());
      }
     @GetMapping("/{id}")
-    public ResponseEntity<PostDto> getPostById(@PathVariable Long id) {
+    public ResponseEntity<PostWithReviewsDto> getPostById(@PathVariable Long id) {
         return this.postService.findById(id).map(post -> ResponseEntity.ok().body(post))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
