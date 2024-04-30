@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface PostService {
 
-    List<PostWithReviewsDto> findAll();
+    List<PostDto> findAll();
     Optional<PostWithReviewsDto> findById(Long id);
     PostDto create(PostRequest postRequest);
     PostDto update(Long id, PostRequest postRequest);

@@ -21,7 +21,7 @@ public class PostController {
         this.postService = postService;
     }
      @GetMapping
-     public ResponseEntity<List<PostWithReviewsDto>> getPosts() {
+     public ResponseEntity<List<PostDto>> getPosts() {
          return ResponseEntity.ok().body(this.postService.findAll());
      }
     @GetMapping("/{id}")

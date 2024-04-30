@@ -41,7 +41,7 @@ public class PostServiceImpl implements PostService {
         this.reviewRepository=reviewRepository;
     }
     @Override
-    public List<PostWithReviewsDto> findAll() {
+    public List<PostDto> findAll() {
         List<PostDto> postDtos = this.postRepository.findAll()
                 .stream()
                 .map(post -> modelMapper.map(post, PostDto.class))
@@ -50,19 +50,7 @@ public class PostServiceImpl implements PostService {
         for (PostDto postDto : postDtos) {
             setAvailabilitiesToPostDto(postDto.getId(), postDto);
         }
-        List<PostWithReviewsDto> postWithReviewsDtos = new ArrayList<>();
-
-        for (PostDto postDto : postDtos) {
-            PostWithReviewsDto postWithReviewsDto = modelMapper.map(postDto, PostWithReviewsDto.class);
-            List<ReviewDto> reviews = reviewRepository.findAllByPostId(postDto.getId())
-                    .stream()
-                    .map(review -> modelMapper.map(review, ReviewDto.class))
-                    .collect(Collectors.toList());
-            postWithReviewsDto.setReviews(reviews);
-            postWithReviewsDtos.add(postWithReviewsDto);
-        }
-
-        return postWithReviewsDtos;
+        return postDtos;
     }
 
     @Override
