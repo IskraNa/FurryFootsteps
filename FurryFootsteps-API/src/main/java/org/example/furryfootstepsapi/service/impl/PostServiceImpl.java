@@ -12,6 +12,9 @@ import org.example.furryfootstepsapi.model.requests.PostRequest;
 import org.example.furryfootstepsapi.repository.*;
 import org.example.furryfootstepsapi.service.PostService;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -147,6 +150,32 @@ public class PostServiceImpl implements PostService {
         this.availabilityRepository.deleteByPostId(id);
         this.reviewRepository.deleteByPostId(id);
         this.postRepository.delete(post);
+    }
+
+    @Override
+    public Page<PostDto> findAllPaginated(Long activityTypeId, Pageable pageable) {
+        List<Post> posts;
+        if (activityTypeId != null) {
+            posts = this.postRepository.findAllByActivityType_Id(activityTypeId);
+        } else posts = this.postRepository.findAll();
+
+        int pageSize = pageable.getPageSize();
+        int currentPage = pageable.getPageNumber();
+        int startItem = currentPage * pageSize;
+
+        List<PostDto> postDtos;
+        int totalCount = posts.size();
+
+        if (posts.size() < startItem) {
+            postDtos = Collections.emptyList();
+        } else {
+            int toIndex = Math.min(startItem + pageSize, totalCount);
+            List<Post> sublist = posts.subList(startItem, toIndex);
+            postDtos = sublist.stream()
+                    .map(post -> modelMapper.map(post, PostDto.class))
+                    .collect(Collectors.toList());
+        }
+        return new PageImpl<>(postDtos, pageable, totalCount);
     }
 
     private void setAvailabilitiesToPostDto(Long postId, PostDto postDto) {
