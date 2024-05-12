@@ -11,8 +11,11 @@ public class PostWithReviewsDto {
     public String petSize;
     public double price;
     public Long petTypeId;
+    public String petType;
     public Long activityTypeId;
+    public String activityType;
     public Long userId;
+    public String user;
     public List<AvailabilityRequest> availabilities;
     public List<ReviewDto> reviews;
 }

@@ -63,11 +63,29 @@ public class PostServiceImpl implements PostService {
         setAvailabilitiesToPostDto(id, postDto);
 
         PostWithReviewsDto postWithReviewsDto = modelMapper.map(postDto, PostWithReviewsDto.class);
-        List<ReviewDto> reviews = reviewRepository.findAllByPostId(postDto.getId())
+        List<ReviewDto> reviewDtos = reviewRepository.findAllByPostId(postDto.getId())
                 .stream()
                 .map(review -> modelMapper.map(review, ReviewDto.class))
                 .collect(Collectors.toList());
-        postWithReviewsDto.setReviews(reviews);
+
+        for (ReviewDto reviewDto : reviewDtos) {
+            User user = this.userRepository.findById(reviewDto.getUserId())
+                    .orElseThrow(() -> new UserNotFound(reviewDto.getUserId()));
+            reviewDto.setUser(user.getName() + " " + user.getSurname());
+        }
+
+        postWithReviewsDto.setReviews(reviewDtos);
+
+        PetType petType = this.petTypeRepository.findById(postDto.getPetTypeId())
+                .orElseThrow(() -> new PetTypeNotFound(postDto.getPetTypeId()));
+        ActivityType activityType = this.activityTypeRepository.findById(postDto.getActivityTypeId())
+                .orElseThrow(() -> new ActivityTypeNotFound(postDto.getActivityTypeId()));
+        User user = this.userRepository.findById(postDto.getUserId())
+                .orElseThrow(() -> new UserNotFound(postDto.getUserId()));
+
+        postWithReviewsDto.setPetType(petType.getType());
+        postWithReviewsDto.setActivityType(activityType.getType());
+        postWithReviewsDto.setUser(user.getName() + " " + user.getSurname());
 
         return Optional.of(postWithReviewsDto);
     }
@@ -99,6 +117,7 @@ public class PostServiceImpl implements PostService {
         post.setPetType(petType);
         post.setActivityType(activityType);
         post.setUser(user);
+        post.setPicture(postRequest.picture);
 
         processAvailabilities(post, postRequest.availabilities);
 
@@ -175,7 +194,18 @@ public class PostServiceImpl implements PostService {
                     .map(post -> modelMapper.map(post, PostDto.class))
                     .collect(Collectors.toList());
         }
+
+        for (PostDto postDto : postDtos) {
+            postDto.setUser(getPostUser(postDto.getUserId()));
+        }
+
         return new PageImpl<>(postDtos, pageable, totalCount);
+    }
+
+    private String getPostUser(Long userId) {
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFound(userId));
+        return user.getName() + " " + user.getSurname();
     }
 
     private void setAvailabilitiesToPostDto(Long postId, PostDto postDto) {

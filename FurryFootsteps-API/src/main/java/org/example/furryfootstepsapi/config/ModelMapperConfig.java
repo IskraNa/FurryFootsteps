@@ -2,7 +2,9 @@ package org.example.furryfootstepsapi.config;
 
 import org.example.furryfootstepsapi.model.Availability;
 import org.example.furryfootstepsapi.model.Post;
+import org.example.furryfootstepsapi.model.Review;
 import org.example.furryfootstepsapi.model.dto.PostDto;
+import org.example.furryfootstepsapi.model.dto.ReviewDto;
 import org.example.furryfootstepsapi.model.requests.AvailabilityRequest;
 import org.modelmapper.*;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +20,7 @@ public class ModelMapperConfig {
     public ModelMapper dtoMapper() {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.addMappings(postDtoPropertyMap());
+        modelMapper.addMappings(reviewDtoPropertyMap());
         configureAvailabilityMapping(modelMapper);
         return modelMapper;
     }
@@ -32,7 +35,23 @@ public class ModelMapperConfig {
                 map().setPrice(source.getPrice());
                 map().setPetTypeId(source.getPetType().getId());
                 map().setActivityTypeId(source.getActivityType().getId());
+                map().setPicture(source.getPicture());
                 map().setUserId(source.getUser().getId());
+                map().setActivityTypeName(source.getActivityType().getType());
+            }
+        };
+    }
+
+    private PropertyMap<Review, ReviewDto> reviewDtoPropertyMap() {
+        return new PropertyMap<Review, ReviewDto>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getId());
+                map().setComment(source.getComment());
+                map().setRating(source.getRating());
+                map().setUserId(source.getUser().getId());
+                map().setPicture(source.getUser().getPicture());
+                map().setPostId(source.getPost().getId());
             }
         };
     }
