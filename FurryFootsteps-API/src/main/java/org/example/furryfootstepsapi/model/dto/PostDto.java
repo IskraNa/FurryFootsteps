@@ -14,6 +14,9 @@ public class PostDto {
     public double price;
     public Long petTypeId;
     public Long activityTypeId;
+    public String activityTypeName;
     public Long userId;
+    public String user;
+    private byte[] picture;
     public List<AvailabilityRequest> availabilities;
 }

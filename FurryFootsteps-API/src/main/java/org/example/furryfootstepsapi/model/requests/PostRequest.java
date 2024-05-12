@@ -9,5 +9,6 @@ public class PostRequest {
     public Long petTypeId;
     public Long activityTypeId;
     public Long userId;
+    public byte[] picture;
     public List<AvailabilityRequest> availabilities;
 }

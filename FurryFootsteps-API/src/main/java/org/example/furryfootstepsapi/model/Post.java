@@ -27,6 +27,9 @@ public class Post {
     @Column(name = "price")
     private double price;
 
+    @Column(name = "picture")
+    private byte[] picture;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pet_type_id")
     private PetType petType;
