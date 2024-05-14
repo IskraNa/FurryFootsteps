@@ -1,5 +1,7 @@
 package org.example.furryfootstepsapi.web;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.example.furryfootstepsapi.model.User;
 import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.requests.UserRequest;
@@ -51,8 +53,22 @@ public class UserController {
         return new ResponseEntity<>("User deleted successfully!", HttpStatus.OK);
     }
 
+
     @GetMapping("/list-posts/{userId}")
     public ResponseEntity<List<PostDto>> getAllUserPosts(@PathVariable Long userId) {
         return ResponseEntity.ok().body(this.userService.findAllUserPosts(userId));
+    }
+    @PostMapping("/login")
+    public ResponseEntity<User> loginUser(@RequestBody UserRequest userRequest) {
+        String email = userRequest.email;
+        String password = userRequest.password;
+
+        User authenticatedUser = userService.authenticate(email, password);
+
+        return ResponseEntity.ok().body(authenticatedUser);
+    }
+    @PostMapping("/logout")
+    public void logout(HttpServletRequest request, HttpServletResponse response){
+        request.getSession().invalidate();
     }
 }

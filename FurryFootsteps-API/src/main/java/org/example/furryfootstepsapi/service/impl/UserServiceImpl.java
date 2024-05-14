@@ -1,6 +1,9 @@
 package org.example.furryfootstepsapi.service.impl;
 
 import org.example.furryfootstepsapi.model.Post;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.example.furryfootstepsapi.model.User;
 import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.exceptions.*;
@@ -8,8 +11,15 @@ import org.example.furryfootstepsapi.model.requests.UserRequest;
 import org.example.furryfootstepsapi.repository.PostRepository;
 import org.example.furryfootstepsapi.repository.UserRepository;
 import org.example.furryfootstepsapi.service.UserService;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,15 +27,24 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+
     private final PostRepository postRepository;
     private final ModelMapper modelMapper;
 
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, PostRepository postRepository, ModelMapper modelMapper) {
+
+
+    public UserServiceImpl(UserRepository userRepository, PostRepository postRepository, ModelMapper modelMapper,  PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.modelMapper = modelMapper;
+        this.passwordEncoder = passwordEncoder;
+
     }
+
+
+    @Override
 
     public List<User> findAll() {
         return this.userRepository.findAll();
@@ -46,7 +65,10 @@ public class UserServiceImpl implements UserService {
         user.setName(userRequest.name);
         user.setSurname(userRequest.surname);
         user.setEmail(userRequest.email);
-        user.setPassword(userRequest.password);
+
+        String encodedPassword = passwordEncoder.encode(userRequest.password);
+        user.setPassword(encodedPassword);
+
         user.setPhone(userRequest.phone);
         user.setLocation(userRequest.location);
         user.setBio(userRequest.bio);
@@ -74,6 +96,21 @@ public class UserServiceImpl implements UserService {
 
         return this.userRepository.save(user);
     }
+
+    @Override
+    public User authenticate(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User with email " + email + " not found"));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        return user;
+    }
+
+
+
 
     @Override
     public void delete(Long id) {

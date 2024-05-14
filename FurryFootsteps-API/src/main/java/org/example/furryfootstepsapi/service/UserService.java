@@ -13,6 +13,7 @@ public interface UserService {
     Optional<User> findById(Long id);
     User create(UserRequest userRequest);
     User update(Long id, UserRequest userRequest);
+    User authenticate(String email, String password);
     void delete(Long id);
 
     List<PostDto> findAllUserPosts(Long userId);
