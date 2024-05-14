@@ -1,19 +1,30 @@
 package org.example.furryfootstepsapi.service.impl;
 
+import org.example.furryfootstepsapi.model.Post;
 import org.example.furryfootstepsapi.model.User;
+import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.exceptions.*;
 import org.example.furryfootstepsapi.model.requests.UserRequest;
+import org.example.furryfootstepsapi.repository.PostRepository;
 import org.example.furryfootstepsapi.repository.UserRepository;
 import org.example.furryfootstepsapi.service.UserService;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final PostRepository postRepository;
+    private final ModelMapper modelMapper;
 
-    public UserServiceImpl(UserRepository userRepository) {
+
+    public UserServiceImpl(UserRepository userRepository, PostRepository postRepository, ModelMapper modelMapper) {
         this.userRepository = userRepository;
+        this.postRepository = postRepository;
+        this.modelMapper = modelMapper;
     }
 
     public List<User> findAll() {
@@ -70,15 +81,37 @@ public class UserServiceImpl implements UserService {
         this.userRepository.delete(user);
     }
 
-    public void emailChecks(String email){
-        if(this.userRepository.findByEmail(email).isPresent()){
+    @Override
+    public List<PostDto> findAllUserPosts(Long userId) {
+        this.userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFound(userId));
+
+        List<Post> postsByUser = this.postRepository.findAllByUserId(userId);
+        List<PostDto> postDtos = postsByUser.stream().map(post -> modelMapper.map(post, PostDto.class)).toList();
+
+        for (PostDto postDto : postDtos) {
+            postDto.setUser(getPostUser(postDto.getUserId()));
+        }
+
+        return postDtos;
+    }
+
+    private String getPostUser(Long userId) {
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFound(userId));
+        return user.getName() + " " + user.getSurname();
+    }
+
+    public void emailChecks(String email) {
+        if (this.userRepository.findByEmail(email).isPresent()) {
             throw new EmailAlreadyExists();
         }
         String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
-        if(!email.matches(emailRegex)){
+        if (!email.matches(emailRegex)) {
             throw new IncorrectEmailFormat();
         }
     }
+
     public void phoneCheck(String phoneNumber) {
         String phoneRegex = "^\\d{9}$"; // 9 cifri samo spoeni 000000000
         if (phoneNumber != null && !phoneNumber.matches(phoneRegex)) { //staviv phoneNumber!=null u slucaj ako ne e zadolzitelno telf broj za profil
