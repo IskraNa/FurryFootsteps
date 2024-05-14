@@ -1,6 +1,7 @@
 package org.example.furryfootstepsapi.web;
 
 import org.example.furryfootstepsapi.model.User;
+import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.requests.UserRequest;
 import org.example.furryfootstepsapi.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -48,5 +49,10 @@ public class UserController {
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         this.userService.delete(id);
         return new ResponseEntity<>("User deleted successfully!", HttpStatus.OK);
+    }
+
+    @GetMapping("/list-posts/{userId}")
+    public ResponseEntity<List<PostDto>> getAllUserPosts(@PathVariable Long userId) {
+        return ResponseEntity.ok().body(this.userService.findAllUserPosts(userId));
     }
 }

@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long>{
     List<Post> findAllByActivityType_Id(Long activityTypeId);
+    List<Post> findAllByUserId(Long userId);
 }
