@@ -4,6 +4,8 @@ import lombok.Data;
 
 import jakarta.persistence.*;
 
+import java.util.Optional;
+
 @Data
 @Entity
 @Table(name = "request")
@@ -29,5 +31,9 @@ public class Request {
         this.id = id;
         this.post = post;
         this.user = user;
+    }
+
+    public Request(Post post, Long userId) {
+
     }
 }

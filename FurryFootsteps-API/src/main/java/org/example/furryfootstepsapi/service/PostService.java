@@ -1,5 +1,6 @@
 package org.example.furryfootstepsapi.service;
 
+import org.example.furryfootstepsapi.model.Post;
 import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.dto.PostWithReviewsDto;
 import org.example.furryfootstepsapi.model.requests.PostRequest;
