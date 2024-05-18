@@ -202,6 +202,12 @@ public class PostServiceImpl implements PostService {
         return new PageImpl<>(postDtos, pageable, totalCount);
     }
 
+    @Override
+    public Optional<Long> findUserIdByPostId(Long postId) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFound(postId));
+        return Optional.ofNullable(post.getUser().getId());
+    }
+
     private String getPostUser(Long userId) {
         User user = this.userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFound(userId));
@@ -252,5 +258,7 @@ public class PostServiceImpl implements PostService {
 
         this.availabilityRepository.saveAll(updatedAvailabilities);
     }
+
+
 
 }

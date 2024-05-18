@@ -119,6 +119,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public String getName(Long id) {
+        User user = this.userRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
+        return user.getName();
+    }
+
+    @Override
     public List<PostDto> findAllUserPosts(Long userId) {
         this.userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFound(userId));

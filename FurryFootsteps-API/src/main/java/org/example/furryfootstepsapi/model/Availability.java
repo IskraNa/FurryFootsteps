@@ -3,6 +3,7 @@ package org.example.furryfootstepsapi.model;
 import lombok.Data;
 
 import jakarta.persistence.*;
+import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 
@@ -28,6 +29,12 @@ public class Availability {
     private Post post;
 
     public Availability() {
+    }
+
+    public Availability(LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo)
+    {
+        this.dateTimeFrom=dateTimeFrom;
+        this.dateTimeTo=dateTimeTo;
     }
 
     public Availability(Long id, LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Post post) {

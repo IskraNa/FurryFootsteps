@@ -30,7 +30,8 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return this.userService.findById(id).map(user -> ResponseEntity.ok().body(user))
+        return userService.findById(id)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -70,5 +71,11 @@ public class UserController {
     @PostMapping("/logout")
     public void logout(HttpServletRequest request, HttpServletResponse response){
         request.getSession().invalidate();
+    }
+
+    @GetMapping("/name/{id}")
+    public ResponseEntity<String> getUserNameById(@PathVariable Long id) {
+        String userName = userService.getName(id);
+        return ResponseEntity.ok().body(userName);
     }
 }

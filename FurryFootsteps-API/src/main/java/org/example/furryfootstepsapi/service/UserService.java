@@ -15,6 +15,6 @@ public interface UserService {
     User update(Long id, UserRequest userRequest);
     User authenticate(String email, String password);
     void delete(Long id);
-
+    String getName(Long id);
     List<PostDto> findAllUserPosts(Long userId);
 }

@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -62,5 +63,12 @@ public class PostController {
     public ResponseEntity<String> deletePost(@PathVariable Long id) {
         this.postService.delete(id);
         return new ResponseEntity<>("Post deleted successfully!", HttpStatus.OK);
+    }
+
+    @GetMapping("/{postId}/user")
+    public ResponseEntity<Long> getUserIdByPostId(@PathVariable Long postId) {
+        Optional<Long> userId = postService.findUserIdByPostId(postId);
+        return userId.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
