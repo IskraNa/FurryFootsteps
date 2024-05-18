@@ -1,5 +1,6 @@
 package org.example.furryfootstepsapi.service;
 
+import org.example.furryfootstepsapi.model.Request;
 import org.example.furryfootstepsapi.model.User;
 import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.requests.UserRequest;
@@ -17,4 +18,5 @@ public interface UserService {
     void delete(Long id);
     String getName(Long id);
     List<PostDto> findAllUserPosts(Long userId);
+    List<Request> getRequestsById(Long id);
 }

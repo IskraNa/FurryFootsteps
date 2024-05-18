@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface RequestRepository extends JpaRepository<Request, Long>{
     List<Request> findByUserId(Long userId);
-
+    List<Request> findAllByPostId(Long postId);
 
 }

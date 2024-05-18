@@ -4,11 +4,13 @@ import org.example.furryfootstepsapi.model.Post;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.furryfootstepsapi.model.Request;
 import org.example.furryfootstepsapi.model.User;
 import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.exceptions.*;
 import org.example.furryfootstepsapi.model.requests.UserRequest;
 import org.example.furryfootstepsapi.repository.PostRepository;
+import org.example.furryfootstepsapi.repository.RequestRepository;
 import org.example.furryfootstepsapi.repository.UserRepository;
 import org.example.furryfootstepsapi.service.UserService;
 
@@ -32,15 +34,15 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
 
     private final PasswordEncoder passwordEncoder;
+    private final RequestRepository requestRepository;
 
 
-
-    public UserServiceImpl(UserRepository userRepository, PostRepository postRepository, ModelMapper modelMapper,  PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PostRepository postRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, RequestRepository requestRepository) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
-
+        this.requestRepository = requestRepository;
     }
 
 
@@ -137,6 +139,19 @@ public class UserServiceImpl implements UserService {
         }
 
         return postDtos;
+    }
+
+    @Override
+    public List<Request> getRequestsById(Long id) {
+        List<Request> requests = new ArrayList<>();
+        List<Post> posts = this.postRepository.findAllByUserId(id);
+
+        for ( Post p : posts){
+            Long temp_p = p.getId();
+            List<Request> rq =  requestRepository.findAllByPostId(temp_p);
+            requests.addAll(rq);
+        }
+        return requests;
     }
 
     private String getPostUser(Long userId) {

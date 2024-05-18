@@ -2,6 +2,7 @@ package org.example.furryfootstepsapi.web;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.furryfootstepsapi.model.Request;
 import org.example.furryfootstepsapi.model.User;
 import org.example.furryfootstepsapi.model.dto.PostDto;
 import org.example.furryfootstepsapi.model.requests.UserRequest;
@@ -78,4 +79,10 @@ public class UserController {
         String userName = userService.getName(id);
         return ResponseEntity.ok().body(userName);
     }
+    @GetMapping("/getRequestsById/{id}")
+    public ResponseEntity<List<Request>> getRequestsById(@PathVariable Long id){
+
+        return ResponseEntity.ok().body(this.userService.getRequestsById(id));
+    }
+
 }
