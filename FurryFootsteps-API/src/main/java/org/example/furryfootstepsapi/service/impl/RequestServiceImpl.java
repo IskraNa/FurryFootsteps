@@ -1,10 +1,10 @@
 package org.example.furryfootstepsapi.service.impl;
 
+import jakarta.transaction.Transactional;
 import org.example.furryfootstepsapi.model.Availability;
 import org.example.furryfootstepsapi.model.Post;
 import org.example.furryfootstepsapi.model.Request;
 import org.example.furryfootstepsapi.model.User;
-import org.example.furryfootstepsapi.model.dto.AvailabilityParser;
 import org.example.furryfootstepsapi.model.exceptions.*;
 import org.example.furryfootstepsapi.repository.AvailabilityRepository;
 import org.example.furryfootstepsapi.repository.PostRepository;
@@ -43,15 +43,21 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public Request create(Request request, Long postId, Long userId ) {
-        // Fetch post and user based on their IDs
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new PostNotFoundException(postId));
-        User user = userRepository.findById(userId)
+    public Request create(Request request, Long availabilityId, Long userId ) {
+        // Fetch post and userRequester based on their IDs
+
+        Availability availability = this.availabilityRepository.findById(availabilityId)
+                .orElseThrow(() -> new AvailabilityNotFoundException(availabilityId));
+        Post post = postRepository.findById(availability.getPost().getId())
+                .orElseThrow(() -> new PostNotFoundException(availability.getPost().getId()));
+        User userRequester = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFound(userId));
 
+        //request.setPost(post);
+        request.setAvailability(availability);
         request.setPost(post);
-        request.setUser(user);
+        request.setUserRequester(userRequester);
+        request.setUserPoster(post.getUser());
         request.setStatus(Request.RequestStatus.PENDING);
 
         // Save the request
@@ -59,10 +65,16 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public void acceptRequest(Long id) {
+    public void acceptRequest(Long id, Long availabilityId) {
         Request request = requestRepository.findById(id)
                 .orElseThrow(() -> new RequestNotFound(id));
         request.setStatus(Request.RequestStatus.ACCEPTED);
+
+//        Availability availability = this.availabilityRepository.findById(availabilityId)
+//                        .orElseThrow(() -> new AvailabilityNotFoundException(availabilityId));
+
+//        this.availabilityRepository.deleteById(availabilityId);
+        //this.availabilityRepository.delete(availability);
         requestRepository.save(request);
     }
 
@@ -76,7 +88,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<Request> getRequestsByUserId(Long userId) {
-        return requestRepository.findByUserId(userId);
+        return requestRepository.findByUserPosterId(userId);
     }
 
 }

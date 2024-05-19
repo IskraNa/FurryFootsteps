@@ -1,9 +1,9 @@
 package org.example.furryfootstepsapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import jakarta.persistence.*;
-import org.springframework.security.core.parameters.P;
 
 @Data
 @Entity
@@ -18,16 +18,25 @@ public class Request {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "requestid")
+    @Column(name = "request_id")
     private Long id;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_poster_id")
+    private User userPoster;
+
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "post_id")
     private Post post;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "availability_id")
+    private Availability availability;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_requester_id")
+    private User userRequester;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
@@ -36,10 +45,12 @@ public class Request {
     public Request() {
     }
 
-    public Request(Long id, Post post, User user, RequestStatus status) {
+    public Request(Long id, User userPoster, Post post, Availability availability, User userRequester, RequestStatus status) {
         this.id = id;
+        this.userPoster = userPoster;
         this.post = post;
-        this.user = user;
+        this.availability = availability;
+        this.userRequester = userRequester;
         this.status = status;
     }
 }

@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.example.furryfootstepsapi.model.Request;
 import org.example.furryfootstepsapi.model.User;
 import org.example.furryfootstepsapi.model.dto.PostDto;
+import org.example.furryfootstepsapi.model.dto.RequestDto;
 import org.example.furryfootstepsapi.model.requests.UserRequest;
 import org.example.furryfootstepsapi.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -79,10 +80,14 @@ public class UserController {
         String userName = userService.getName(id);
         return ResponseEntity.ok().body(userName);
     }
-    @GetMapping("/getRequestsById/{id}")
-    public ResponseEntity<List<Request>> getRequestsById(@PathVariable Long id){
+    @GetMapping("/user-poster/{id}")
+    public ResponseEntity<List<RequestDto>> getRequestsByUserPosterId(@PathVariable Long id){
+        return ResponseEntity.ok().body(this.userService.getRequestsByUserPosterId(id));
+    }
 
-        return ResponseEntity.ok().body(this.userService.getRequestsById(id));
+    @GetMapping("/user-requester/{id}")
+    public ResponseEntity<List<RequestDto>> getRequestsByUserRequesterId(@PathVariable Long id){
+        return ResponseEntity.ok().body(this.userService.getRequestsByUserRequesterId(id));
     }
 
 }

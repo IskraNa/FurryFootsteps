@@ -2,8 +2,10 @@ package org.example.furryfootstepsapi.config;
 
 import org.example.furryfootstepsapi.model.Availability;
 import org.example.furryfootstepsapi.model.Post;
+import org.example.furryfootstepsapi.model.Request;
 import org.example.furryfootstepsapi.model.Review;
 import org.example.furryfootstepsapi.model.dto.PostDto;
+import org.example.furryfootstepsapi.model.dto.RequestDto;
 import org.example.furryfootstepsapi.model.dto.ReviewDto;
 import org.example.furryfootstepsapi.model.requests.AvailabilityRequest;
 import org.modelmapper.*;
@@ -21,6 +23,7 @@ public class ModelMapperConfig {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.addMappings(postDtoPropertyMap());
         modelMapper.addMappings(reviewDtoPropertyMap());
+        modelMapper.addMappings(requestDtoPropertyMap());
         configureAvailabilityMapping(modelMapper);
         return modelMapper;
     }
@@ -56,6 +59,21 @@ public class ModelMapperConfig {
         };
     }
 
+    private PropertyMap<Request, RequestDto> requestDtoPropertyMap() {
+        return new PropertyMap<Request, RequestDto>() {
+            @Override
+            protected void configure() {
+                map().setRequestId(source.getId());
+                map().setAvailabilityId(source.getAvailability().getId());
+                map().setUserPosterId(source.getUserPoster().getId());
+                map().setUserRequesterId(source.getUserRequester().getId());
+                map().setStatus(source.getStatus());
+                map().setPostId(source.getPost().getId());
+                map().setAvailabilityTime("");
+            }
+        };
+    }
+
     private void configureAvailabilityMapping(ModelMapper modelMapper) {
         modelMapper.createTypeMap(Availability.class, AvailabilityRequest.class)
                 .addMappings(mapping -> {
@@ -63,6 +81,7 @@ public class ModelMapperConfig {
                             .map(Availability::getDateTimeFrom, AvailabilityRequest::setDateTimeFrom);
                     mapping.using(localDateTimeToStringConverter())
                             .map(Availability::getDateTimeTo, AvailabilityRequest::setDateTimeTo);
+                    mapping.map(Availability::getId, AvailabilityRequest::setId);
                 });
     }
 

@@ -3,6 +3,7 @@ package org.example.furryfootstepsapi.service;
 import org.example.furryfootstepsapi.model.Request;
 import org.example.furryfootstepsapi.model.User;
 import org.example.furryfootstepsapi.model.dto.PostDto;
+import org.example.furryfootstepsapi.model.dto.RequestDto;
 import org.example.furryfootstepsapi.model.requests.UserRequest;
 
 import java.util.List;
@@ -18,5 +19,7 @@ public interface UserService {
     void delete(Long id);
     String getName(Long id);
     List<PostDto> findAllUserPosts(Long userId);
-    List<Request> getRequestsById(Long id);
+    List<RequestDto> getRequestsByUserPosterId(Long id);
+
+    List<RequestDto> getRequestsByUserRequesterId(Long id);
 }

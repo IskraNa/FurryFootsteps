@@ -8,7 +8,11 @@ import java.util.List;
 
 @Repository
 public interface RequestRepository extends JpaRepository<Request, Long>{
-    List<Request> findByUserId(Long userId);
+    List<Request> findByUserPosterId(Long userId);
+    List<Request> findByUserPosterIdAndStatus(Long userId, Request.RequestStatus status);
+    List<Request> findAllByUserRequesterId(Long userId);
     List<Request> findAllByPostId(Long postId);
+    List<Request> findAllByAvailabilityId(Long availabilityId);
+    void deleteByPostId(Long id);
 
 }

@@ -32,8 +32,9 @@ public class PostServiceImpl implements PostService {
     private final AvailabilityRepository availabilityRepository;
     private final ModelMapper modelMapper;
     private final ReviewRepository reviewRepository;
+    private final RequestRepository requestRepository;
 
-    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository, AvailabilityRepository availabilityRepository, ModelMapper modelMapper, ReviewRepository reviewRepository) {
+    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository, AvailabilityRepository availabilityRepository, ModelMapper modelMapper, ReviewRepository reviewRepository, RequestRepository requestRepository) {
         this.postRepository = postRepository;
         this.petTypeRepository = petTypeRepository;
         this.activityTypeRepository = activityTypeRepository;
@@ -41,6 +42,7 @@ public class PostServiceImpl implements PostService {
         this.availabilityRepository = availabilityRepository;
         this.modelMapper = modelMapper;
         this.reviewRepository = reviewRepository;
+        this.requestRepository = requestRepository;
     }
 
     @Override
@@ -168,6 +170,7 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new PostNotFound(id));
         this.availabilityRepository.deleteByPostId(id);
         this.reviewRepository.deleteByPostId(id);
+        this.requestRepository.deleteByPostId(id);
         this.postRepository.delete(post);
     }
 
