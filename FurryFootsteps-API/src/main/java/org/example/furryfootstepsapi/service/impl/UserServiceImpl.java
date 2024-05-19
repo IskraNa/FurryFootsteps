@@ -83,15 +83,15 @@ public class UserServiceImpl implements UserService {
     public User update(Long id, UserRequest userRequest) {
         User user = this.userRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
 
-        // user.setName(userRequest.name);
-        // user.setSurname(userRequest.surname);
-        // user.setEmail(userRequest.email);
+        user.setName(userRequest.name);
+        user.setSurname(userRequest.surname);
+        user.setEmail(userRequest.email);
         phoneCheck(userRequest.phone);
 
-        user.setPassword(userRequest.password);
+//        user.setPassword(userRequest.password);
         user.setPhone(userRequest.phone);
         user.setLocation(userRequest.location);
-        user.setBio(userRequest.bio);
+//        user.setBio(userRequest.bio);
         user.setPicture(userRequest.picture);  // TODO: implement Base64 encoder for images
         user.setPetDescription(userRequest.petDescription);
 

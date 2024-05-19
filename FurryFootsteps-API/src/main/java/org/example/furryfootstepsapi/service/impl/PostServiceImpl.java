@@ -88,7 +88,7 @@ public class PostServiceImpl implements PostService {
         postWithReviewsDto.setPetType(petType.getType());
         postWithReviewsDto.setActivityType(activityType.getType());
         postWithReviewsDto.setUser(user.getName() + " " + user.getSurname());
-
+        postWithReviewsDto.setPicture(postDto.getPicture());
         return Optional.of(postWithReviewsDto);
     }
 
