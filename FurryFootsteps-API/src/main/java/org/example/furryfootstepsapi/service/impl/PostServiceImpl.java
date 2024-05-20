@@ -32,8 +32,9 @@ public class PostServiceImpl implements PostService {
     private final AvailabilityRepository availabilityRepository;
     private final ModelMapper modelMapper;
     private final ReviewRepository reviewRepository;
+    private final RequestRepository requestRepository;
 
-    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository, AvailabilityRepository availabilityRepository, ModelMapper modelMapper, ReviewRepository reviewRepository) {
+    public PostServiceImpl(PostRepository postRepository, PetTypeRepository petTypeRepository, ActivityTypeRepository activityTypeRepository, UserRepository userRepository, AvailabilityRepository availabilityRepository, ModelMapper modelMapper, ReviewRepository reviewRepository, RequestRepository requestRepository) {
         this.postRepository = postRepository;
         this.petTypeRepository = petTypeRepository;
         this.activityTypeRepository = activityTypeRepository;
@@ -41,6 +42,7 @@ public class PostServiceImpl implements PostService {
         this.availabilityRepository = availabilityRepository;
         this.modelMapper = modelMapper;
         this.reviewRepository = reviewRepository;
+        this.requestRepository = requestRepository;
     }
 
     @Override
@@ -86,7 +88,7 @@ public class PostServiceImpl implements PostService {
         postWithReviewsDto.setPetType(petType.getType());
         postWithReviewsDto.setActivityType(activityType.getType());
         postWithReviewsDto.setUser(user.getName() + " " + user.getSurname());
-
+        postWithReviewsDto.setPicture(postDto.getPicture());
         return Optional.of(postWithReviewsDto);
     }
 
@@ -168,6 +170,7 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new PostNotFound(id));
         this.availabilityRepository.deleteByPostId(id);
         this.reviewRepository.deleteByPostId(id);
+        this.requestRepository.deleteByPostId(id);
         this.postRepository.delete(post);
     }
 
@@ -200,6 +203,12 @@ public class PostServiceImpl implements PostService {
         }
 
         return new PageImpl<>(postDtos, pageable, totalCount);
+    }
+
+    @Override
+    public Optional<Long> findUserIdByPostId(Long postId) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFound(postId));
+        return Optional.ofNullable(post.getUser().getId());
     }
 
     private String getPostUser(Long userId) {
@@ -252,5 +261,7 @@ public class PostServiceImpl implements PostService {
 
         this.availabilityRepository.saveAll(updatedAvailabilities);
     }
+
+
 
 }

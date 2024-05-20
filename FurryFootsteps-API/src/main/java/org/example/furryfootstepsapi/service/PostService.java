@@ -12,14 +12,11 @@ import java.util.Optional;
 public interface PostService {
 
     List<PostDto> findAll();
-
     Optional<PostWithReviewsDto> findById(Long id);
-
     PostDto create(PostRequest postRequest);
-
     PostDto update(Long id, PostRequest postRequest);
-
     void delete(Long id);
-
     Page<PostDto> findAllPaginated(Long activityTypeId, Pageable pageable);
+    Optional<Long> findUserIdByPostId(Long postId);
+
 }

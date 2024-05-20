@@ -2,8 +2,10 @@ package org.example.furryfootstepsapi.web;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.furryfootstepsapi.model.Request;
 import org.example.furryfootstepsapi.model.User;
 import org.example.furryfootstepsapi.model.dto.PostDto;
+import org.example.furryfootstepsapi.model.dto.RequestDto;
 import org.example.furryfootstepsapi.model.requests.UserRequest;
 import org.example.furryfootstepsapi.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -30,7 +32,8 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return this.userService.findById(id).map(user -> ResponseEntity.ok().body(user))
+        return userService.findById(id)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -71,4 +74,20 @@ public class UserController {
     public void logout(HttpServletRequest request, HttpServletResponse response){
         request.getSession().invalidate();
     }
+
+    @GetMapping("/name/{id}")
+    public ResponseEntity<String> getUserNameById(@PathVariable Long id) {
+        String userName = userService.getName(id);
+        return ResponseEntity.ok().body(userName);
+    }
+    @GetMapping("/user-poster/{id}")
+    public ResponseEntity<List<RequestDto>> getRequestsByUserPosterId(@PathVariable Long id){
+        return ResponseEntity.ok().body(this.userService.getRequestsByUserPosterId(id));
+    }
+
+    @GetMapping("/user-requester/{id}")
+    public ResponseEntity<List<RequestDto>> getRequestsByUserRequesterId(@PathVariable Long id){
+        return ResponseEntity.ok().body(this.userService.getRequestsByUserRequesterId(id));
+    }
+
 }

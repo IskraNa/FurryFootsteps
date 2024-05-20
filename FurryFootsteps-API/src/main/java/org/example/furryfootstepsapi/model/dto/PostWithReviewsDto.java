@@ -18,4 +18,6 @@ public class PostWithReviewsDto {
     public String user;
     public List<AvailabilityRequest> availabilities;
     public List<ReviewDto> reviews;
+    public byte[] picture;
+
 }

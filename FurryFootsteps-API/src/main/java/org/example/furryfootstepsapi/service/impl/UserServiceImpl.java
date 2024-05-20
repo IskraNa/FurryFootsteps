@@ -1,28 +1,27 @@
 package org.example.furryfootstepsapi.service.impl;
 
+import org.example.furryfootstepsapi.model.Availability;
 import org.example.furryfootstepsapi.model.Post;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import org.example.furryfootstepsapi.model.Request;
 import org.example.furryfootstepsapi.model.User;
 import org.example.furryfootstepsapi.model.dto.PostDto;
+import org.example.furryfootstepsapi.model.dto.RequestDto;
 import org.example.furryfootstepsapi.model.exceptions.*;
 import org.example.furryfootstepsapi.model.requests.UserRequest;
+import org.example.furryfootstepsapi.repository.AvailabilityRepository;
 import org.example.furryfootstepsapi.repository.PostRepository;
+import org.example.furryfootstepsapi.repository.RequestRepository;
 import org.example.furryfootstepsapi.repository.UserRepository;
 import org.example.furryfootstepsapi.service.UserService;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -32,15 +31,17 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
 
     private final PasswordEncoder passwordEncoder;
+    private final RequestRepository requestRepository;
+    private final AvailabilityRepository availabilityRepository;
 
 
-
-    public UserServiceImpl(UserRepository userRepository, PostRepository postRepository, ModelMapper modelMapper,  PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PostRepository postRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, RequestRepository requestRepository, AvailabilityRepository availabilityRepository) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
-
+        this.requestRepository = requestRepository;
+        this.availabilityRepository = availabilityRepository;
     }
 
 
@@ -82,15 +83,15 @@ public class UserServiceImpl implements UserService {
     public User update(Long id, UserRequest userRequest) {
         User user = this.userRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
 
-        // user.setName(userRequest.name);
-        // user.setSurname(userRequest.surname);
-        // user.setEmail(userRequest.email);
+        user.setName(userRequest.name);
+        user.setSurname(userRequest.surname);
+        user.setEmail(userRequest.email);
         phoneCheck(userRequest.phone);
 
-        user.setPassword(userRequest.password);
+//        user.setPassword(userRequest.password);
         user.setPhone(userRequest.phone);
         user.setLocation(userRequest.location);
-        user.setBio(userRequest.bio);
+//        user.setBio(userRequest.bio);
         user.setPicture(userRequest.picture);  // TODO: implement Base64 encoder for images
         user.setPetDescription(userRequest.petDescription);
 
@@ -110,12 +111,16 @@ public class UserServiceImpl implements UserService {
     }
 
 
-
-
     @Override
     public void delete(Long id) {
         User user = this.userRepository.findById(id).orElseThrow(() -> new PostNotFound(id));
         this.userRepository.delete(user);
+    }
+
+    @Override
+    public String getName(Long id) {
+        User user = this.userRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
+        return user.getName();
     }
 
     @Override
@@ -131,6 +136,48 @@ public class UserServiceImpl implements UserService {
         }
 
         return postDtos;
+    }
+
+    @Override
+    public List<RequestDto> getRequestsByUserPosterId(Long id) {
+//        List<Request> requests = new ArrayList<>();
+//        List<Post> posts = this.postRepository.findAllByUserId(id);
+//
+//        for ( Post p : posts){
+//            Long temp_p = p.getId();
+//            List<Request> rq =  requestRepository.findAllByPostId(temp_p);
+//            requests.addAll(rq);
+//        }
+//        return requests;
+        List<Request> request = this.requestRepository.findByUserPosterIdAndStatus(id, Request.RequestStatus.PENDING);
+        return getRequestDtos(request);
+    }
+
+    @Override
+    public List<RequestDto> getRequestsByUserRequesterId(Long id) {
+        List<Request> request = this.requestRepository.findAllByUserRequesterId(id);
+        return getRequestDtos(request);
+    }
+
+    private List<RequestDto> getRequestDtos(List<Request> request) {
+        List<RequestDto> requestDtos = request.stream()
+                .map(req -> modelMapper.map(req, RequestDto.class)).toList();
+        for (RequestDto requestDto: requestDtos) {
+            User userRequester = this.userRepository.findById(requestDto.getUserRequesterId())
+                    .orElseThrow(() -> new UserNotFound(requestDto.getUserRequesterId()));
+            User userPoster = this.userRepository.findById(requestDto.getUserPosterId())
+                    .orElseThrow(() -> new UserNotFound(requestDto.getUserPosterId()));
+            Post post = this.postRepository.findById(requestDto.getPostId())
+                    .orElseThrow(() -> new PostNotFound(requestDto.getPostId()));
+            Availability availability = this.availabilityRepository.findById(requestDto.getAvailabilityId())
+                            .orElseThrow(() -> new AvailabilityNotFoundException(requestDto.getAvailabilityId()));
+
+            requestDto.setUserRequesterName(userRequester.getName() + " " + userRequester.getSurname());
+            requestDto.setUserPosterName(userPoster.getName() + " " + userPoster.getSurname());
+            requestDto.setPostName(post.getActivityType().getType());
+            requestDto.setAvailabilityTime(availability.getDateTimeFrom().toString() + " - " + availability.getDateTimeTo().toString());
+        }
+        return requestDtos;
     }
 
     private String getPostUser(Long userId) {
