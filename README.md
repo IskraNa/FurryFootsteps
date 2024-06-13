@@ -1,5 +1,7 @@
 # FurryFootsteps
 
+Demo: [Link to video demonstration](https://www.youtube.com/watch?v=qPkveuFHaEg)
+
 To login the database you need to follow this steps:
 - Run the application
 - When the application is running, open Chrome and type: localhost:5050
